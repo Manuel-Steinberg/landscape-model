@@ -48,7 +48,6 @@ components:
         - graphite
         - cassandra
         - elasticsearch
-        - grafana
         - appdynamics-collector
 
   # promtail Agent
@@ -134,9 +133,8 @@ components:
     categories:
       - commercial-services
     connections:
-      includesFrom:
-        - prometheus-server
       dataFrom:
+        - prometheus-server
         - graphite
         - elasticsearch
         - influxdata-influxdb

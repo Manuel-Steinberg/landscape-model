@@ -157,6 +157,7 @@ components:
     connections:
       dataFrom:
         - scouter-collector-server
+      dataTo:
         - influxdata-influxdb
     capabilities:
       aspects:

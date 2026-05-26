@@ -64,9 +64,8 @@ components:
         - ruby
         - android
     connections:
-      includeTo:
+      includesTo:
         - opentelemetry-format
-        - opentracing-format
       dataTo:
         - opencensus
         - opentelemetry
@@ -102,10 +101,8 @@ components:
         - python
         - ruby
     connections:
-       dataTo:
+      dataFrom:
         - opentracing
-       includeTo:
-        - opentracing-format
 
   # SignalFx instrumentation metrics libraries
   - id: signalfx-metrics

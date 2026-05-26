@@ -50,7 +50,6 @@ components:
       includesFrom:
         - zipkin-format
       dataFrom:
-        - servicepilot-agent
         - opentelemetry
         - opentelemetry-collector
         - datadog-language-agents

@@ -18,7 +18,6 @@ components:
     connections:
       dataFrom:
         - prometheus-server
-        - open-tsdb
       dataTo:
         - prometheus-server
         - prometheus-alerting

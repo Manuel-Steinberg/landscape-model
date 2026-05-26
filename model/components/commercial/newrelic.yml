@@ -86,7 +86,7 @@ components:
         - nodejs
     connections:
       dataTo:
-        - grafana
+        - newrelic
 
   # NewRelic SDKs
   - id: newrelic-prometheus-integration

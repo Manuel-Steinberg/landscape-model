@@ -144,7 +144,6 @@ components:
       dataFrom:
         - cassandra
         - elasticsearch
-        - jaeger-collector
       dataTo:
         - grafana
     capabilities:

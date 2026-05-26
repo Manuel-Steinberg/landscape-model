@@ -135,9 +135,7 @@ components:
         - fluentd
         - collectd
         - opentracing
-        - opencensus
         - micrometer
-        - statsd
 
 # Dynatrace Micrometer Registry
   - id: dynatrace-micrometer-register
