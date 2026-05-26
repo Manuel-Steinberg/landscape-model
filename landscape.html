@@ -20,7 +20,7 @@
     #toolbar {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       padding: 10px 16px;
       background: #1a1d27;
       border-bottom: 1px solid #2a2d3a;
@@ -33,7 +33,7 @@
       font-weight: 600;
       color: #fff;
       white-space: nowrap;
-      margin-right: 8px;
+      margin-right: 6px;
     }
 
     .filter-btn {
@@ -45,12 +45,18 @@
       transition: opacity 0.15s, border-color 0.15s;
       background: var(--color);
       color: #fff;
-      opacity: 0.5;
+      opacity: 0.45;
     }
     .filter-btn.active { opacity: 1; border-color: #fff4; }
 
-    #search {
+    #toolbar-right {
       margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #search {
       padding: 5px 10px;
       border-radius: 6px;
       border: 1px solid #2a2d3a;
@@ -58,9 +64,14 @@
       color: #e0e0e0;
       font-size: 13px;
       width: 180px;
+      transition: border-color 0.15s;
+    }
+    #search:focus {
+      outline: none;
+      border-color: #4c8bf5;
     }
 
-    #layout-btn {
+    .toolbar-btn {
       padding: 5px 10px;
       border-radius: 6px;
       border: 1px solid #2a2d3a;
@@ -68,8 +79,10 @@
       color: #e0e0e0;
       font-size: 12px;
       cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
     }
-    #layout-btn:hover { background: #1a1d27; }
+    .toolbar-btn:hover { background: #1a1d27; }
 
     #main {
       display: flex;
@@ -82,16 +95,35 @@
       height: 100%;
     }
 
+    /* Panel slides in from the right.
+       margin-right: -290px collapses its flex footprint when hidden so #cy fills the full width. */
     #panel {
-      width: 280px;
+      width: 290px;
       background: #1a1d27;
       border-left: 1px solid #2a2d3a;
-      padding: 20px 16px;
       overflow-y: auto;
-      display: none;
+      overflow-x: hidden;
+      position: relative;
+      flex-shrink: 0;
+      transform: translateX(100%);
+      margin-right: -290px;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                  margin-right 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.18s ease;
+    }
+    #panel.visible {
+      transform: translateX(0);
+      margin-right: 0;
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    #panel.visible { display: block; }
+    #panel-inner {
+      width: 290px;
+      padding: 20px 16px;
+    }
 
     #panel h2 {
       font-size: 16px;
@@ -116,23 +148,13 @@
       margin-bottom: 12px;
     }
 
-    #panel a {
-      display: block;
-      font-size: 12px;
-      color: #7eb8f7;
-      text-decoration: none;
-      margin-bottom: 4px;
-      word-break: break-all;
-    }
-    #panel a:hover { text-decoration: underline; }
-
     #panel h3 {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
-      color: #666;
+      color: #555;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 14px 0 6px;
+      letter-spacing: 0.06em;
+      margin: 16px 0 6px;
     }
 
     #panel .conn-list {
@@ -140,11 +162,16 @@
       font-size: 12px;
     }
     #panel .conn-list li {
-      padding: 3px 0;
+      padding: 4px 6px;
       color: #aaa;
       cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.1s, color 0.1s;
     }
-    #panel .conn-list li:hover { color: #fff; }
+    #panel .conn-list li:hover {
+      background: #2a2d3a;
+      color: #fff;
+    }
 
     #panel .close-btn {
       position: absolute;
@@ -152,21 +179,79 @@
       right: 12px;
       background: none;
       border: none;
-      color: #666;
+      color: #555;
       font-size: 18px;
       cursor: pointer;
       line-height: 1;
+      transition: color 0.1s;
     }
     #panel .close-btn:hover { color: #fff; }
 
-    #panel { position: relative; }
+    #panel-logo-wrap {
+      margin-bottom: 10px;
+    }
 
     #logo-img {
-      max-height: 40px;
-      max-width: 100%;
-      margin-bottom: 8px;
+      max-height: 48px;
+      max-width: 110px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #fff;
+      padding: 4px;
       display: block;
     }
+
+    #panel-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: #2a2d3a;
+      border: 1px solid #3a3d4a;
+      border-radius: 6px;
+      color: #7eb8f7;
+      font-size: 12px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    #panel-link-btn:hover { background: #3a3d4a; }
+
+    #panel-github-links {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 6px;
+    }
+
+    .gh-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      font-size: 12px;
+      color: #9a9ea8;
+      text-decoration: none;
+      transition: color 0.1s;
+    }
+    .gh-link:hover { color: #e0e0e0; }
+
+    #node-tooltip {
+      position: fixed;
+      background: #1a1d27;
+      border: 1px solid #3a3d4a;
+      color: #e0e0e0;
+      font-size: 12px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 100;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    #node-tooltip.show { opacity: 1; }
 
     #status {
       position: absolute;
@@ -175,6 +260,7 @@
       font-size: 11px;
       color: #555;
       pointer-events: none;
+      user-select: none;
     }
   </style>
 </head>
@@ -183,37 +269,49 @@
 <div id="toolbar">
   <h1>OpenAPM Landscape</h1>
   <div id="filter-buttons"></div>
-  <input id="search" type="text" placeholder="Search components...">
-  <button id="layout-btn">Re-layout</button>
+  <div id="toolbar-right">
+    <input id="search" type="text" placeholder="Search… (/)">
+    <button class="toolbar-btn" id="fit-btn">Fit</button>
+    <button class="toolbar-btn" id="layout-btn">Re-layout</button>
+  </div>
 </div>
 
 <div id="main">
   <div id="cy"></div>
   <div id="panel">
-    <button class="close-btn" id="close-panel">✕</button>
-    <img id="logo-img" src="" alt="">
-    <h2 id="panel-name"></h2>
-    <div id="panel-categories"></div>
-    <p id="panel-desc"></p>
-    <div id="panel-links"></div>
-    <div id="panel-connections"></div>
+    <div id="panel-inner">
+      <button class="close-btn" id="close-panel">✕</button>
+      <div id="panel-logo-wrap">
+        <img id="logo-img" src="" alt="">
+      </div>
+      <h2 id="panel-name"></h2>
+      <div id="panel-categories"></div>
+      <p id="panel-desc"></p>
+      <a id="panel-link-btn" href="#" target="_blank" rel="noopener" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Visit website
+      </a>
+      <div id="panel-github-links"></div>
+      <div id="panel-connections"></div>
+    </div>
   </div>
 </div>
 
-<div id="status">Loading...</div>
+<div id="node-tooltip"></div>
+<div id="status">Loading…</div>
 
 <script>
 const CATEGORY_COLORS = {
-  'agent':             '#4c8bf5',
+  'agent':               '#4c8bf5',
   'instrumentation-lib': '#9c6efc',
-  'collector':         '#f5a623',
-  'transport':         '#50c8a8',
-  'format':            '#a8d8a8',
-  'data-processing':   '#f07070',
-  'storage':           '#e8a87c',
-  'visualization':     '#5fc8f0',
-  'dashboarding':      '#85d4f5',
-  'alerting':          '#f76d6d',
+  'collector':           '#f5a623',
+  'transport':           '#50c8a8',
+  'format':              '#a8d8a8',
+  'data-processing':     '#f07070',
+  'storage':             '#e8a87c',
+  'visualization':       '#5fc8f0',
+  'dashboarding':        '#85d4f5',
+  'alerting':            '#f76d6d',
   'commercial-services': '#b0b0b0',
 };
 
@@ -224,25 +322,49 @@ function categoryColor(cats) {
   return CATEGORY_COLORS[cats[0]] || DEFAULT_COLOR;
 }
 
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
+
 let cy;
-let allNodes = [];
 let activeCategories = new Set(Object.keys(CATEGORY_COLORS));
-let model;
+let compMap = {};
+
+async function resolveLogos(components) {
+  const cache = {};
+  const ids = [...new Set(components.filter(c => c.logo).map(c => c.logo))];
+  await Promise.all(ids.map(async id => {
+    for (const ext of ['png', 'jpg', 'jpeg', 'svg']) {
+      const url = `logos/${id}.${ext}`;
+      const ok = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+      if (ok) { cache[id] = url; break; }
+    }
+  }));
+  return cache;
+}
 
 fetch('build/model.json')
   .then(r => r.json())
-  .then(data => {
-    model = data;
-    initViz(data);
+  .then(async data => {
+    document.getElementById('status').textContent = 'Resolving logos…';
+    await initViz(data);
   })
   .catch(err => {
     document.getElementById('status').textContent = 'Error loading model.json: ' + err.message;
   });
 
-function initViz(data) {
+async function initViz(data) {
   const components = data.components;
+  const logoCache = await resolveLogos(components);
 
-  // Build cytoscape elements
+  components.forEach(c => { compMap[c.id] = c; });
+
   const nodes = components.map(c => ({
     data: {
       id: c.id,
@@ -250,6 +372,7 @@ function initViz(data) {
       categories: c.categories || [],
       color: categoryColor(c.categories),
       component: c,
+      logoUrl: logoCache[c.logo] || null,
     }
   }));
 
@@ -262,18 +385,12 @@ function initViz(data) {
     (conns.dataTo || []).forEach(target => {
       if (!idSet.has(target)) return;
       const key = c.id + '|' + target;
-      if (!seen.has(key)) {
-        seen.add(key);
-        edges.push({ data: { id: key, source: c.id, target } });
-      }
+      if (!seen.has(key)) { seen.add(key); edges.push({ data: { id: key, source: c.id, target } }); }
     });
     (conns.dataFrom || []).forEach(source => {
       if (!idSet.has(source)) return;
       const key = source + '|' + c.id;
-      if (!seen.has(key)) {
-        seen.add(key);
-        edges.push({ data: { id: key, source, target: c.id } });
-      }
+      if (!seen.has(key)) { seen.add(key); edges.push({ data: { id: key, source, target: c.id } }); }
     });
   });
 
@@ -299,25 +416,40 @@ function initViz(data) {
         }
       },
       {
-        selector: 'node:selected',
+        selector: 'node[?logoUrl]',
         style: {
-          'border-width': 2,
-          'border-color': '#fff',
-          'width': 32,
-          'height': 32,
+          'background-image': 'data(logoUrl)',
+          'background-fit': 'contain',
+          'background-clip': 'none',
+          'background-color': '#ffffff',
+          'background-image-opacity': 1,
+          'background-width': '80%',
+          'background-height': '80%',
+          'border-width': 2.5,
+          'border-color': 'data(color)',
+          'width': 52,
+          'height': 52,
         }
+      },
+      {
+        selector: 'node[?logoUrl]:selected',
+        style: { 'border-width': 3.5, 'border-color': '#fff', 'width': 58, 'height': 58 }
+      },
+      {
+        selector: 'node:selected',
+        style: { 'border-width': 2, 'border-color': '#fff', 'width': 32, 'height': 32 }
       },
       {
         selector: 'node.highlighted',
-        style: {
-          'border-width': 2,
-          'border-color': '#ffdd57',
-          'opacity': 1,
-        }
+        style: { 'border-width': 2.5, 'border-color': '#ffdd57', 'opacity': 1 }
+      },
+      {
+        selector: 'node[?logoUrl].highlighted',
+        style: { 'border-color': '#ffdd57', 'border-width': 3.5 }
       },
       {
         selector: 'node.faded',
-        style: { 'opacity': 0.15 }
+        style: { 'opacity': 0.12 }
       },
       {
         selector: 'edge',
@@ -332,16 +464,11 @@ function initViz(data) {
       },
       {
         selector: 'edge.highlighted',
-        style: {
-          'line-color': '#ffdd5788',
-          'target-arrow-color': '#ffdd5788',
-          'width': 2,
-          'opacity': 1,
-        }
+        style: { 'line-color': '#ffdd5788', 'target-arrow-color': '#ffdd5788', 'width': 2, 'opacity': 1 }
       },
       {
         selector: 'edge.faded',
-        style: { 'opacity': 0.05 }
+        style: { 'opacity': 0.04 }
       },
       {
         selector: 'node.hidden, edge.hidden',
@@ -351,17 +478,23 @@ function initViz(data) {
     layout: { name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 }
   });
 
-  allNodes = nodes;
   buildFilterButtons(data.categories || []);
-  bindEvents(data.components);
+  bindEvents();
+  updateStatus();
+}
+
+function updateStatus() {
+  const total = cy.nodes().length;
+  const visible = cy.nodes().not('.hidden').length;
+  const edges = cy.edges().not('.hidden').length;
+  const countStr = visible < total ? `${visible}/${total}` : `${total}`;
   document.getElementById('status').textContent =
-    `${components.length} components · ${edges.length} connections`;
+    `${countStr} components · ${edges} connections · double-click node to open website`;
 }
 
 function buildFilterButtons(categories) {
   const container = document.getElementById('filter-buttons');
 
-  // "All" toggle
   const allBtn = document.createElement('button');
   allBtn.className = 'filter-btn active';
   allBtn.textContent = 'All';
@@ -381,10 +514,7 @@ function buildFilterButtons(categories) {
   });
   container.appendChild(allBtn);
 
-  const catIds = categories.length > 0
-    ? categories.map(c => c.id)
-    : Object.keys(CATEGORY_COLORS);
-
+  const catIds = categories.length > 0 ? categories.map(c => c.id) : Object.keys(CATEGORY_COLORS);
   catIds.forEach(catId => {
     const color = CATEGORY_COLORS[catId] || DEFAULT_COLOR;
     const catDef = (categories || []).find(c => c.id === catId);
@@ -412,45 +542,56 @@ function buildFilterButtons(categories) {
 }
 
 function applyFilters() {
-  const searchTerm = document.getElementById('search').value.toLowerCase();
-  cy.nodes().forEach(node => {
-    const cats = node.data('categories') || [];
-    const matchesCat = cats.length === 0 || cats.some(c => activeCategories.has(c));
-    const matchesSearch = !searchTerm ||
-      node.data('label').toLowerCase().includes(searchTerm) ||
-      (node.data('component').description || '').toLowerCase().includes(searchTerm);
+  const searchTerm = document.getElementById('search').value.toLowerCase().trim();
+  cy.batch(() => {
+    cy.nodes().forEach(node => {
+      const cats = node.data('categories') || [];
+      const matchesCat = cats.length === 0 || cats.some(c => activeCategories.has(c));
+      const matchesSearch = !searchTerm ||
+        node.data('label').toLowerCase().includes(searchTerm) ||
+        (node.data('component').description || '').toLowerCase().includes(searchTerm);
+      node.toggleClass('hidden', !(matchesCat && matchesSearch));
+    });
+    cy.edges().forEach(edge => {
+      edge.toggleClass('hidden', edge.source().hasClass('hidden') || edge.target().hasClass('hidden'));
+    });
+  });
 
-    if (matchesCat && matchesSearch) {
-      node.removeClass('hidden');
-    } else {
-      node.addClass('hidden');
-    }
-  });
-  cy.edges().forEach(edge => {
-    const srcHidden = edge.source().hasClass('hidden');
-    const tgtHidden = edge.target().hasClass('hidden');
-    if (srcHidden || tgtHidden) edge.addClass('hidden');
-    else edge.removeClass('hidden');
-  });
+  const visible = cy.nodes().not('.hidden');
+  if (visible.length > 0 && visible.length < cy.nodes().length) {
+    cy.animate({ fit: { eles: visible, padding: 60 } }, { duration: 300 });
+  } else if (visible.length === cy.nodes().length) {
+    cy.animate({ fit: { padding: 40 } }, { duration: 300 });
+  }
+  updateStatus();
 }
 
-function bindEvents(components) {
-  const compMap = {};
-  components.forEach(c => { compMap[c.id] = c; });
+function highlightNode(node) {
+  cy.elements().removeClass('highlighted faded');
+  const connected = node.neighborhood();
+  connected.addClass('highlighted');
+  node.addClass('highlighted');
+  cy.elements().not(connected).not(node).addClass('faded');
+  node.removeClass('faded');
+}
 
+function bindEvents() {
+  const tooltip = document.getElementById('node-tooltip');
+
+  // Single click → open panel + highlight
   cy.on('tap', 'node', evt => {
     const node = evt.target;
-    showPanel(node.data('component'), compMap);
-
-    // Highlight connected nodes/edges
-    cy.elements().removeClass('highlighted faded');
-    const connected = node.neighborhood();
-    connected.addClass('highlighted');
-    node.addClass('highlighted');
-    cy.elements().not(connected).not(node).addClass('faded');
-    node.removeClass('faded');
+    highlightNode(node);
+    showPanel(node.data('component'));
   });
 
+  // Double-click → open website
+  cy.on('dblclick', 'node', evt => {
+    const comp = evt.target.data('component');
+    if (comp && comp.link) window.open(comp.link, '_blank', 'noopener');
+  });
+
+  // Background tap → clear highlight and close panel
   cy.on('tap', evt => {
     if (evt.target === cy) {
       cy.elements().removeClass('highlighted faded');
@@ -458,26 +599,61 @@ function bindEvents(components) {
     }
   });
 
-  document.getElementById('search').addEventListener('input', applyFilters);
+  // Hover tooltip
+  cy.on('mouseover', 'node', evt => {
+    tooltip.textContent = evt.target.data('label');
+    tooltip.classList.add('show');
+  });
+  cy.on('mouseout', 'node', () => tooltip.classList.remove('show'));
+  document.getElementById('cy').addEventListener('mousemove', e => {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top  = (e.clientY - 36) + 'px';
+  });
 
+  // Search with debounce
+  document.getElementById('search').addEventListener('input', debounce(applyFilters, 150));
+
+  // Close button
   document.getElementById('close-panel').addEventListener('click', () => {
     cy.elements().removeClass('highlighted faded');
     hidePanel();
   });
 
+  // Re-layout, then fit
   document.getElementById('layout-btn').addEventListener('click', () => {
-    cy.layout({ name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 }).run();
+    const layout = cy.layout({ name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 });
+    layout.one('layoutstop', () => cy.animate({ fit: { padding: 40 } }, { duration: 300 }));
+    layout.run();
+  });
+
+  // Fit button
+  document.getElementById('fit-btn').addEventListener('click', () => {
+    const visible = cy.nodes().not('.hidden');
+    cy.animate({ fit: { eles: visible.length ? visible : cy.nodes(), padding: 50 } }, { duration: 300 });
+  });
+
+  // Keyboard shortcuts: Escape closes panel, / focuses search
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      cy.elements().removeClass('highlighted faded');
+      hidePanel();
+    }
+    if (e.key === '/' && document.activeElement !== document.getElementById('search')) {
+      e.preventDefault();
+      document.getElementById('search').focus();
+      document.getElementById('search').select();
+    }
   });
 }
 
-function showPanel(component, compMap) {
-  const panel = document.getElementById('panel');
-  panel.classList.add('visible');
+function showPanel(component) {
+  document.getElementById('panel').classList.add('visible');
 
+  const node = cy.getElementById(component.id);
+  const resolvedUrl = node && node.data('logoUrl');
   const logoEl = document.getElementById('logo-img');
-  if (component.logo) {
-    logoEl.src = `logos/${component.logo}.svg`;
-    logoEl.onerror = () => { logoEl.src = `logos/${component.logo}.png`; };
+  if (resolvedUrl) {
+    logoEl.src = resolvedUrl;
     logoEl.style.display = 'block';
   } else {
     logoEl.style.display = 'none';
@@ -496,44 +672,48 @@ function showPanel(component, compMap) {
     catsEl.appendChild(span);
   });
 
-  const linksEl = document.getElementById('panel-links');
-  linksEl.innerHTML = '';
+  const linkBtn = document.getElementById('panel-link-btn');
   if (component.link) {
+    linkBtn.href = component.link;
+    linkBtn.style.display = 'inline-flex';
+  } else {
+    linkBtn.style.display = 'none';
+  }
+
+  const ghEl = document.getElementById('panel-github-links');
+  ghEl.innerHTML = '';
+  (component.github || []).forEach(gh => {
     const a = document.createElement('a');
-    a.href = component.link;
+    a.href = `https://github.com/${gh}`;
     a.target = '_blank';
-    a.textContent = '🌐 ' + component.link;
-    linksEl.appendChild(a);
-  }
-  if (component.github) {
-    component.github.forEach(gh => {
-      const a = document.createElement('a');
-      a.href = `https://github.com/${gh}`;
-      a.target = '_blank';
-      a.textContent = '⑂ github.com/' + gh;
-      linksEl.appendChild(a);
-    });
-  }
+    a.rel = 'noopener';
+    a.className = 'gh-link';
+    a.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>${gh}`;
+    ghEl.appendChild(a);
+  });
 
   const connsEl = document.getElementById('panel-connections');
   connsEl.innerHTML = '';
   const conns = component.connections || {};
 
-  if (conns.dataFrom && conns.dataFrom.length) {
+  function makeConnList(ids, prefix, sectionLabel) {
+    const valid = ids.filter(id => compMap[id]);
+    if (!valid.length) return;
     const h = document.createElement('h3');
-    h.textContent = 'Receives data from';
+    h.textContent = sectionLabel;
     connsEl.appendChild(h);
     const ul = document.createElement('ul');
     ul.className = 'conn-list';
-    conns.dataFrom.forEach(id => {
-      const li = document.createElement('li');
+    valid.forEach(id => {
       const comp = compMap[id];
-      li.textContent = '← ' + (comp ? comp.name : id);
+      const li = document.createElement('li');
+      li.textContent = prefix + comp.name;
       li.addEventListener('click', () => {
-        const node = cy.getElementById(id);
-        if (node) {
-          cy.animate({ center: { eles: node }, zoom: 1.5 }, { duration: 400 });
-          showPanel(comp || { id }, compMap);
+        const targetNode = cy.getElementById(id);
+        if (targetNode.length) {
+          cy.animate({ center: { eles: targetNode }, zoom: 1.5 }, { duration: 300 });
+          highlightNode(targetNode);
+          showPanel(comp);
         }
       });
       ul.appendChild(li);
@@ -541,27 +721,8 @@ function showPanel(component, compMap) {
     connsEl.appendChild(ul);
   }
 
-  if (conns.dataTo && conns.dataTo.length) {
-    const h = document.createElement('h3');
-    h.textContent = 'Sends data to';
-    connsEl.appendChild(h);
-    const ul = document.createElement('ul');
-    ul.className = 'conn-list';
-    conns.dataTo.forEach(id => {
-      const li = document.createElement('li');
-      const comp = compMap[id];
-      li.textContent = '→ ' + (comp ? comp.name : id);
-      li.addEventListener('click', () => {
-        const node = cy.getElementById(id);
-        if (node) {
-          cy.animate({ center: { eles: node }, zoom: 1.5 }, { duration: 400 });
-          showPanel(comp || { id }, compMap);
-        }
-      });
-      ul.appendChild(li);
-    });
-    connsEl.appendChild(ul);
-  }
+  makeConnList(conns.dataFrom || [], '← ', 'Receives data from');
+  makeConnList(conns.dataTo   || [], '→ ', 'Sends data to');
 }
 
 function hidePanel() {
