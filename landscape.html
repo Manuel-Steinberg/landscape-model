@@ -471,7 +471,7 @@ async function initViz(data) {
         style: {
           'background-image': 'data(logoUrl)',
           'background-fit': 'contain',
-          'background-clip': 'none',
+          'background-clip': 'node',
           'background-color': '#ffffff',
           'background-image-opacity': 1,
           'background-width': '80%',
@@ -680,41 +680,42 @@ function buildFilterButtons(categories) {
   allBtn.textContent = 'All';
   allBtn.style.setProperty('--color', '#444');
   allBtn.style.background = '#444';
-  allBtn.addEventListener('click', () => {
-    const allActive = activeCategories.size === Object.keys(CATEGORY_COLORS).length;
-    if (allActive) {
-      activeCategories.clear();
-    } else {
-      Object.keys(CATEGORY_COLORS).forEach(c => activeCategories.add(c));
-    }
+  const allCatIds = () => categories.length > 0 ? categories.map(c => c.id) : Object.keys(CATEGORY_COLORS);
+
+  function setAll() {
+    allCatIds().forEach(c => activeCategories.add(c));
+    allBtn.classList.add('active');
+    container.querySelectorAll('.filter-btn[data-cat]').forEach(b => b.classList.remove('active'));
+  }
+
+  function setSolo(catId) {
+    activeCategories.clear();
+    activeCategories.add(catId);
+    allBtn.classList.remove('active');
     container.querySelectorAll('.filter-btn[data-cat]').forEach(b => {
-      b.classList.toggle('active', activeCategories.has(b.dataset.cat));
+      b.classList.toggle('active', b.dataset.cat === catId);
     });
-    applyFilters();
-  });
+  }
+
+  allBtn.addEventListener('click', () => { setAll(); applyFilters(); });
   container.appendChild(allBtn);
 
-  const catIds = categories.length > 0 ? categories.map(c => c.id) : Object.keys(CATEGORY_COLORS);
+  const catIds = allCatIds();
   catIds.forEach(catId => {
     const color = CATEGORY_COLORS[catId] || DEFAULT_COLOR;
     const catDef = (categories || []).find(c => c.id === catId);
     const label = catDef ? catDef.name : catId;
 
     const btn = document.createElement('button');
-    btn.className = 'filter-btn active';
+    btn.className = 'filter-btn';
     btn.dataset.cat = catId;
     btn.textContent = label;
     btn.style.setProperty('--color', color);
     btn.style.background = color;
 
     btn.addEventListener('click', () => {
-      if (activeCategories.has(catId)) {
-        activeCategories.delete(catId);
-        btn.classList.remove('active');
-      } else {
-        activeCategories.add(catId);
-        btn.classList.add('active');
-      }
+      const isSolo = activeCategories.size === 1 && activeCategories.has(catId);
+      if (isSolo) { setAll(); } else { setSolo(catId); }
       applyFilters();
     });
     container.appendChild(btn);
