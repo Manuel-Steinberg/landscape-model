@@ -354,14 +354,7 @@ const CATEGORY_COLORS = {
 
 const DEFAULT_COLOR = '#888';
 
-const PIPELINE_COLUMNS = [
-  { id: 'collection', label: 'Data Collection', categories: ['agent', 'instrumentation-lib'],               x: 0    },
-  { id: 'collector',  label: 'Collector',        categories: ['collector', 'transport', 'format'],          x: 280  },
-  { id: 'processing', label: 'Processing',       categories: ['data-processing'],                           x: 560  },
-  { id: 'storage',    label: 'Storage',          categories: ['storage'],                                   x: 840  },
-  { id: 'usage',      label: 'Visualization',    categories: ['visualization', 'dashboarding', 'alerting'], x: 1120 },
-  { id: 'commercial', label: 'Commercial',       categories: ['commercial-services'],                       x: 1400 },
-];
+let PIPELINE_COLUMNS = []; // built from data.categories in initViz
 
 let isLaneMode = false;
 
@@ -409,6 +402,16 @@ fetch('build/model.json')
 
 async function initViz(data) {
   const components = data.components;
+
+  // Build pipeline columns directly from model.json — one column per category, name + order exact
+  const COL_SPACING = 300;
+  PIPELINE_COLUMNS = (data.categories || []).map((cat, i) => ({
+    id:         cat.id,
+    label:      cat.name,
+    categories: [cat.id],
+    x:          i * COL_SPACING,
+  }));
+
   const logoCache = await resolveLogos(components);
 
   components.forEach(c => { compMap[c.id] = c; });
@@ -640,11 +643,18 @@ function updateLaneOverlay() {
   const pan = cy.pan();
   const zoom = cy.zoom();
 
+  // Hide headers when columns are too compressed to read
+  const spacing = PIPELINE_COLUMNS.length >= 2
+    ? (PIPELINE_COLUMNS[1].x - PIPELINE_COLUMNS[0].x) * zoom
+    : 300;
+  const showHeaders = spacing > 70;
+
   document.querySelectorAll('.col-header').forEach(div => {
     const col = PIPELINE_COLUMNS.find(c => c.id === div.dataset.col);
     if (!col) return;
     div.style.left = (col.x * zoom + pan.x) + 'px';
     div.style.transform = 'translateX(-50%)';
+    div.style.opacity = showHeaders ? '1' : '0';
   });
 
   document.querySelectorAll('.col-separator').forEach(div => {
