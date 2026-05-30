@@ -262,6 +262,42 @@
       pointer-events: none;
       user-select: none;
     }
+
+    #cy { position: relative; }
+
+    #lane-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 10;
+      display: none;
+    }
+
+    .col-header {
+      position: absolute;
+      top: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .col-separator {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: #1c2030;
+    }
+
+    #lane-btn.active {
+      border-color: #4c8bf5;
+      color: #7eb8f7;
+    }
   </style>
 </head>
 <body>
@@ -272,6 +308,7 @@
   <div id="toolbar-right">
     <input id="search" type="text" placeholder="Search… (/)">
     <button class="toolbar-btn" id="fit-btn">Fit</button>
+    <button class="toolbar-btn" id="lane-btn">Lane Layout</button>
     <button class="toolbar-btn" id="layout-btn">Re-layout</button>
   </div>
 </div>
@@ -316,6 +353,17 @@ const CATEGORY_COLORS = {
 };
 
 const DEFAULT_COLOR = '#888';
+
+const PIPELINE_COLUMNS = [
+  { id: 'collection', label: 'Data Collection', categories: ['agent', 'instrumentation-lib'],               x: 0    },
+  { id: 'collector',  label: 'Collector',        categories: ['collector', 'transport', 'format'],          x: 280  },
+  { id: 'processing', label: 'Processing',       categories: ['data-processing'],                           x: 560  },
+  { id: 'storage',    label: 'Storage',          categories: ['storage'],                                   x: 840  },
+  { id: 'usage',      label: 'Visualization',    categories: ['visualization', 'dashboarding', 'alerting'], x: 1120 },
+  { id: 'commercial', label: 'Commercial',       categories: ['commercial-services'],                       x: 1400 },
+];
+
+let isLaneMode = false;
 
 function categoryColor(cats) {
   if (!cats || cats.length === 0) return DEFAULT_COLOR;
@@ -473,14 +521,136 @@ async function initViz(data) {
       {
         selector: 'node.hidden, edge.hidden',
         style: { 'display': 'none' }
-      }
+      },
+      {
+        selector: 'edge.lane',
+        style: {
+          'line-style': 'dashed',
+          'line-dash-pattern': [8, 4],
+          'line-color': '#2a4070',
+          'target-arrow-color': '#2a4070',
+          'width': 1.2,
+          'opacity': 0.6,
+        }
+      },
     ],
     layout: { name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 }
   });
 
+  // Lane overlay lives inside the cy canvas so it scrolls and clips correctly
+  const laneOverlay = document.createElement('div');
+  laneOverlay.id = 'lane-overlay';
+  document.getElementById('cy').appendChild(laneOverlay);
+
+  cy.on('viewport', updateLaneOverlay);
+
   buildFilterButtons(data.categories || []);
   bindEvents();
   updateStatus();
+}
+
+function applyLaneLayout() {
+  isLaneMode = true;
+  document.getElementById('lane-btn').classList.add('active');
+  document.getElementById('lane-btn').textContent = 'Force Layout';
+
+  const catToColIdx = {};
+  PIPELINE_COLUMNS.forEach((col, i) => col.categories.forEach(cat => { catToColIdx[cat] = i; }));
+
+  const colNodes = PIPELINE_COLUMNS.map(() => []);
+  const fallbackIdx = PIPELINE_COLUMNS.length - 1;
+
+  cy.nodes().not('.hidden').forEach(node => {
+    const cats = node.data('categories') || [];
+    let idx = fallbackIdx;
+    for (const cat of cats) {
+      if (catToColIdx[cat] !== undefined) { idx = catToColIdx[cat]; break; }
+    }
+    colNodes[idx].push(node);
+  });
+
+  colNodes.forEach(nodes => nodes.sort((a, b) => a.data('label').localeCompare(b.data('label'))));
+
+  const NODE_SPACING_Y = 75;
+  const positions = {};
+  colNodes.forEach((nodes, colIdx) => {
+    const col = PIPELINE_COLUMNS[colIdx];
+    const totalH = (nodes.length - 1) * NODE_SPACING_Y;
+    nodes.forEach((node, i) => {
+      positions[node.id()] = { x: col.x, y: i * NODE_SPACING_Y - totalH / 2 };
+    });
+  });
+
+  cy.layout({
+    name: 'preset',
+    positions: node => positions[node.id()] || { x: 0, y: 0 },
+    animate: true,
+    animationDuration: 500,
+    fit: true,
+    padding: 60,
+  }).run();
+
+  cy.edges().not('.hidden').addClass('lane');
+  showLaneOverlay();
+}
+
+function applyForceLayout() {
+  isLaneMode = false;
+  document.getElementById('lane-btn').classList.remove('active');
+  document.getElementById('lane-btn').textContent = 'Lane Layout';
+  hideLaneOverlay();
+  cy.edges().removeClass('lane');
+  const layout = cy.layout({ name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 });
+  layout.one('layoutstop', () => cy.animate({ fit: { padding: 40 } }, { duration: 300 }));
+  layout.run();
+}
+
+function showLaneOverlay() {
+  const overlay = document.getElementById('lane-overlay');
+  overlay.innerHTML = '';
+
+  PIPELINE_COLUMNS.forEach(col => {
+    const div = document.createElement('div');
+    div.className = 'col-header';
+    div.dataset.col = col.id;
+    div.textContent = col.label;
+    overlay.appendChild(div);
+  });
+
+  for (let i = 0; i < PIPELINE_COLUMNS.length - 1; i++) {
+    const midX = (PIPELINE_COLUMNS[i].x + PIPELINE_COLUMNS[i + 1].x) / 2;
+    const sep = document.createElement('div');
+    sep.className = 'col-separator';
+    sep.dataset.sepX = midX;
+    overlay.appendChild(sep);
+  }
+
+  overlay.style.display = 'block';
+  updateLaneOverlay();
+}
+
+function hideLaneOverlay() {
+  const overlay = document.getElementById('lane-overlay');
+  overlay.style.display = 'none';
+  overlay.innerHTML = '';
+}
+
+function updateLaneOverlay() {
+  if (!isLaneMode) return;
+  const pan = cy.pan();
+  const zoom = cy.zoom();
+
+  document.querySelectorAll('.col-header').forEach(div => {
+    const col = PIPELINE_COLUMNS.find(c => c.id === div.dataset.col);
+    if (!col) return;
+    div.style.left = (col.x * zoom + pan.x) + 'px';
+    div.style.transform = 'translateX(-50%)';
+  });
+
+  document.querySelectorAll('.col-separator').forEach(div => {
+    const midX = parseFloat(div.dataset.sepX);
+    div.style.left = (midX * zoom + pan.x) + 'px';
+  });
 }
 
 function updateStatus() {
@@ -619,11 +789,20 @@ function bindEvents() {
     hidePanel();
   });
 
-  // Re-layout, then fit
+  // Lane layout toggle
+  document.getElementById('lane-btn').addEventListener('click', () => {
+    if (isLaneMode) applyForceLayout(); else applyLaneLayout();
+  });
+
+  // Re-layout, then fit — respects current mode
   document.getElementById('layout-btn').addEventListener('click', () => {
-    const layout = cy.layout({ name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 });
-    layout.one('layoutstop', () => cy.animate({ fit: { padding: 40 } }, { duration: 300 }));
-    layout.run();
+    if (isLaneMode) {
+      applyLaneLayout();
+    } else {
+      const layout = cy.layout({ name: 'cose', animate: true, nodeRepulsion: 8000, idealEdgeLength: 80 });
+      layout.one('layoutstop', () => cy.animate({ fit: { padding: 40 } }, { duration: 300 }));
+      layout.run();
+    }
   });
 
   // Fit button
@@ -648,6 +827,7 @@ function bindEvents() {
 
 function showPanel(component) {
   document.getElementById('panel').classList.add('visible');
+  setTimeout(updateLaneOverlay, 230); // after panel slide-in transition
 
   const node = cy.getElementById(component.id);
   const resolvedUrl = node && node.data('logoUrl');
@@ -727,6 +907,7 @@ function showPanel(component) {
 
 function hidePanel() {
   document.getElementById('panel').classList.remove('visible');
+  setTimeout(updateLaneOverlay, 230);
 }
 </script>
 </body>
